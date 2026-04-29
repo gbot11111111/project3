@@ -128,11 +128,11 @@ function draw() {
     playerBullets[i].move();
     playerBullets[i].show();
 
-    for (let j = 0; j < playerBullets.length; j++) {
+    for (let j = 0; j < enemies.length; j++) {
 
-      if (playerBullets[j].touchingEnemy(enemies[i].x, enemies[i].y)){
+      if (playerBullets[i].touchingEnemy(enemies[j].x+25, enemies[j].y+25)){
         //remove from array
-        playerBullets[j].splice(j,1);
+        playerBullets.splice(i,1);
         console.log("hit");
       }
     }
