@@ -7,17 +7,44 @@ let bg_fadespeed = 30;
 let enemies = [];
 let enemyBullets = [];
 
+let state = 0; //0: main menu
+               //1: instructions
+               //2: gameplay
+               //3: game over
+               //4: win
+
 function setup() {
   createCanvas(800, 800);
   p = new player();
-
-  ufo = new UFO(372,200);
-  enemies.push(ufo);
 }
 
 function preload(){
+  //fonts
+  //badComa = loadFont("assets/fonts/Bad Coma.ttf");
+  drunkFonts = loadFont("assets/fonts/DRUNKFONTS-Regular.otf");
+  whyFont = loadFont("assets/fonts/Blink.ttf");
+  typewriter = loadFont("assets/fonts/JMH Typewriter.otf");
+  
+  //images
   img_alien = loadImage("assets/Aliens.png");
+  img_alienbullet = loadImage("assets/Alien Bullet.png");
   img_car = loadImage("assets/CAR.png");
+  img_car_r = loadImage("assets/CAR_R.png");
+  img_car_l = loadImage("assets/CAR_L.png");
+  img_car_headlights = loadImage("assets/CAR W HEADLIGHTS.png");
+  img_carbullet = loadImage("assets/Car Bullet.png");
+  img_hp3 = loadImage("assets/HEALTH BAR FULL.png");
+  img_hp2 = loadImage("assets/HEALTH BAR 2 LEFT.png");
+  img_hp1 = loadImage("assets/HEALTH BAR 1 LEFT.png");
+  img_hp0 = loadImage("assets/HEALTH BAR ZERO.png");
+
+  //backgrounds
+  titlescreenBG = loadImage("assets/CRYPTID ROAD TRIP BG.png");
+  instScreenBG = loadImage("assets/CRYPTID ROAD TRIP INSTRUCTIONS.png");
+
+  //music
+  mus_keyWest = loadSound("assets/sounds/Key West.mp3"); //Cult Member - Key West
+  mus_purpleHaze = loadSound("assets/sounds/Purple Haze.mp3"); //suki, Sniper1 - Purple Haze
 }
 
 class playerBullet{
@@ -28,7 +55,8 @@ class playerBullet{
   }
   
   show(){
-    ellipse(this.x,this.y,this.r);
+    //ellipse(this.x,this.y,this.r);
+    image(img_carbullet, this.x-25, this.y-50, 50,50);
   }
   
   move(){
@@ -49,17 +77,47 @@ class playerBullet{
 class player{
   constructor(health, armor){
     this.x = 375;
-    this.y = 730;
+    this.y = 600;
     this.health = 100;
+
+    this.shakeAmount = 0;
+    this.maxShake = 10;
   }
 
   damage(number){
+    backgroundFlash(100,0,0,3)
+    this.shakeAmount = this.maxShake;
     this.health-=number;
   }
   
   show(){
-    rect(this.x,this.y,50);
-    //image(img_alien, this.x, this.y, 50,50);
+    let decayFactor = 0.9; // How quickly the shake effect fades
+    let xOffset = random(-this.shakeAmount, this.shakeAmount);
+    let yOffset = random(-this.shakeAmount, this.shakeAmount);
+    
+    // Apply the shake by translating the canvas
+    push();
+
+    translate(xOffset, yOffset);
+
+    if (keyIsDown(RIGHT_ARROW) === true) {
+
+      image(img_car_r, this.x-40, this.y-115, 160,160);
+
+    }else if (keyIsDown(LEFT_ARROW) === true) {
+
+      image(img_car_l, this.x-75, this.y-115, 160,160);
+
+    }else if(mouseIsPressed){
+      image(img_car_headlights, this.x-75, this.y-130, 200,200);
+    }else{
+      image(img_car, this.x-75, this.y-130, 200,200);
+    }
+
+    pop();
+
+    // Decay the shake amount over time
+    this.shakeAmount *= decayFactor;
   }
   
   move(){
@@ -74,24 +132,28 @@ class player{
 }
 
 class UFOBullet{
-  constructor(x,y,r){
+  constructor(x,y,a){
     this.x = x;
     this.y = y;
-    this.r = r;
+    this.r = 50;
+    this.angle = a;
   }
   
   show(){
     stroke(0,255,0);
     noFill();
-    ellipse(this.x,this.y,this.r);
+    image(img_alienbullet, this.x, this.y, 100,100);
   }
   
   move(){
-    this.y+=10;
+    let speed = 8;
+    this.x += cos(this.angle) * speed;
+    this.y += sin(this.angle) * speed;
   }
   
   touchingPlayer(px, py) {
-    let d = dist(px, py, this.x, this.y);
+
+    let d = dist(px-25, py-50, this.x, this.y);
     if (d < this.r) {
       return true;
     } else {
@@ -108,24 +170,39 @@ class UFO{
     this.health = 100;
     this.angle = 0;
     this.dir = 0; 
-    this.size = 100;
+    this.size = 125;
     this.startingy = y;
+    this. timer = 0;
+    this.prevTime = 0;
+
+    this.shakeAmount = 0;
+    this.maxShake = 10;
   }
 
   shoot(){
-    // backgroundFlash(0,200,0,15)
-    // let b = new UFOBulletBullet(this.x+25,this.y-25,50);
-    // enemyBullets.push(b);
+    let bulletAng = atan2(p.y-50 - this.y, p.x-25 - this.x);
+    let b = new UFOBullet(this.x,this.y+50, bulletAng);
+    enemyBullets.push(b);
+  }
+
+  attack(){
+    let currentTime = millis();
+    let interval =  650;
+    if (currentTime - this.prevTime > interval) {
+      this.timer++;
+      this.prevTime = currentTime;
+      if (this.x > -1){
+        this.shoot()
+      }
+      
+    }
+    
   }
 
   damage(number){
+    backgroundFlash(0,100,0,3);
+    this.shakeAmount = this.maxShake;
     this.health-=number;
-    
-    backgroundFlash(0,200,0,15)
-
-    let b = new UFOBullet(this.x+50,this.y+50,50);
-    enemyBullets.push(b);
-
   }
   
   move(){
@@ -151,7 +228,21 @@ class UFO{
   }
 
   show(){
-    image(img_alien, this.x, this.y, 100,100);
+    let decayFactor = 0.9; // How quickly the shake effect fades
+    let xOffset = random(-this.shakeAmount, this.shakeAmount);
+    let yOffset = random(-this.shakeAmount, this.shakeAmount);
+    
+    // Apply the shake by translating the canvas
+    push();
+
+    translate(xOffset, yOffset);
+
+    image(img_alien, this.x, this.y, this.size, this.size);
+
+    pop();
+
+    // Decay the shake amount over time
+    this.shakeAmount *= decayFactor;
       
     noStroke();
     fill(255);
@@ -181,14 +272,78 @@ function drawBackground(){
   }
 }
 
+function drawHealthbar(){
+  let x = 0;
+  let y = 500;
+  if (p.health > 66){
+    image(img_hp3,x,y,1972/5,1488/5);
+  }else if (p.health > 33){
+    image(img_hp2,x,y,1972/5,1488/5);
+  }else if (p.health > 0){
+    image(img_hp1,x,y,1972/5,1488/5);
+  }else{
+    image(img_hp0,x,y,1972/5,1488/5);
+  }
+}
+
 function draw() {
+
+  if (state == 0) {
+    titleScreen();
+    if (!mus_keyWest.isPlaying()){
+      mus_keyWest.play();
+    }
+    
+  } else if (state == 1) {
+    instructionScreen();
+
+  } else if (state == 2) {
+
+    runGame();
+    
+    if (!mus_purpleHaze.isPlaying()){
+      mus_purpleHaze.play();
+    }
+    if (mus_keyWest.isPlaying()){
+      mus_keyWest.stop();
+    }
+  }
   
+}
+
+function mousePressed(){
+  if (state == 0) {
+    state = 1; 
+  } else if (state == 1) {
+    //stage 1
+    ufo = new UFO(-70,100);
+    enemies.push(ufo);
+
+    state = 2;
+
+  }else if (state == 2){
+    let pb = new playerBullet(p.x+25,p.y-25,50);
+    playerBullets.push(pb);
+  }
+  else if (state == 3){
+    gameOver();
+  }
+  
+}
+
+function gameOver(){
+  
+}
+
+function runGame(){
+
   drawBackground();
+  drawHealthbar();
   
   noStroke();
   fill(255);
   textSize(18);
-  text("Health: " + p.health,50,50);
+  text("Health: " + p.health, 230,710);
 
   stroke(255);
   noFill();
@@ -210,6 +365,15 @@ function draw() {
         enemies[j].damage(10);
 
         if (enemies[j].health == 0){
+
+          //spawn next phase
+          if (enemies[j] instanceof UFO){
+            
+            ufo = new UFO(-70,100);
+            enemies.push(ufo);
+          }
+
+          //remove from array
           enemies.splice(j,1);
         }
       }
@@ -219,31 +383,62 @@ function draw() {
   for (let i = 0; i < enemies.length; i++) {
     enemies[i].move();
     enemies[i].show();
+    enemies[i].attack();
   }
 
   for (let i = 0; i < enemyBullets.length; i++) {
     enemyBullets[i].move();
     enemyBullets[i].show();
 
-      if (enemyBullets[i].touchingPlayer(p.x+25, p.y+25)){
+      if (enemyBullets[i].touchingPlayer(p.x, p.y)){
         //remove from array
         enemyBullets.splice(i,1);
-        console.log("player hit");
 
+        console.log("player hit");
         p.damage(10);
 
-        // if (enemies[j].health == 0){
-        //   enemies.splice(j,1);
-        // }
+        if (p.health == 0){
+          gameOver();
+        }
       }
   }
 }
 
-function mousePressed(){
-  backgroundFlash(200,0,0,15)
-
-  let pb = new playerBullet(p.x+25,p.y-25,50);
-  playerBullets.push(pb);
+function titleScreen() {
+  image(titlescreenBG, 0,0,800,800);
+  
+  fill("#1BD63D");
+  textFont(drunkFonts);
+  textSize(120);
+  text("CRYPTID", 160,200);
+  fill("#187829");
+  textFont(whyFont);
+  textSize(70);
+  text("R  O  A  D   T  R  I  P", 120,280);
+  fill(0);
+  textFont(whyFont);
+  textSize(30);
+  text("Tap with thumb to start", 250,520);
 }
 
-
+function instructionScreen() {
+  image(instScreenBG, 0,0,800,800);
+  
+  
+  fill("#1BD63D");
+  textFont(whyFont);
+  textSize(80);
+  text("INSTRUCTIONS", 50,300);
+  
+  fill("#187829");
+  textFont(typewriter);
+  textSize(18);
+  text("Move the joystick left and right to steer", 80,380);
+  text("Shoot the enemies with the button at the top of the joystick", 80, 410);
+  text("Avoid enemy bullets and hit enemies enough times to win", 80, 440);
+  text("Survive your first cryptid road trip", 80, 470);
+  
+  fill("#1BD63D");
+  text("Press the button with your thumb again to start!", 80, 530);
+  
+}
