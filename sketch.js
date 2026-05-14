@@ -1,3 +1,5 @@
+//Shake Code modified from https://editor.p5js.org/luisa_NYU/sketches/QEM1tnYXE
+//Music: Cult Member - Key West, suki, Sniper1 - Purple Haze
 let playerBullets = [];
 let bg_r = 0;
 let bg_g = 0;
@@ -49,8 +51,11 @@ function preload(){
   roadBG = loadImage("assets/IMG_0021.GIF")
 
   //music
-  mus_keyWest = loadSound("assets/sounds/Key West.mp3"); //Cult Member - Key West
-  mus_purpleHaze = loadSound("assets/sounds/Purple Haze.mp3"); //suki, Sniper1 - Purple Haze
+  mus_keyWest = loadSound("assets/sounds/Key West.mp3");
+  mus_purpleHaze = loadSound("assets/sounds/Purple Haze.mp3");
+  snd_shoot = loadSound("assets/sounds/snd_shoot.wav");
+  snd_cardamage = loadSound("assets/sounds/snd_cardamage.wav");
+  snd_enemydamage = loadSound("assets/sounds/snd_enemydamage.wav");
 }
 
 class playerBullet{
@@ -596,20 +601,28 @@ function mousePressed(){
   }else if (state == 2){
     let pb = new playerBullet(p.x+25,p.y-25,50);
     playerBullets.push(pb);
+    snd_shoot.play();
   }
   else if (state == 3){
-    state = 0;
+    if (p.health == 150){
+      state = 0;
+    }
     p.health = 150;
     enemies = [];
   }
   else if (state == 4){
-    state = 0;
+    if (p.health == 150){
+      state = 0;
+    }
     p.health = 150;
     enemies = [];
   }
 }
 
 function gameOver(){
+  if (mus_purpleHaze.isPlaying()){
+      mus_purpleHaze.stop();
+  }
   background(0);
   image(instScreenBG,0,0,800,800);
   noStroke();
@@ -625,6 +638,9 @@ function gameOver(){
 }
 
 function madeItOut() {
+  if (mus_purpleHaze.isPlaying()){
+      mus_purpleHaze.stop();
+  }
   background(0);
   image(winBG,0,0,800,800);
   noStroke();
@@ -667,7 +683,7 @@ function runGame(){
         //remove from array
         playerBullets.splice(i,1);
         console.log("hit");
-
+        snd_enemydamage.play();
         enemies[j].damage(10);
 
         if (enemies[j].health == 0){
@@ -708,6 +724,7 @@ function runGame(){
         enemyBullets.splice(i,1);
 
         console.log("player hit");
+        snd_cardamage.play();
         p.damage(10);
 
         if (p.health == 0){

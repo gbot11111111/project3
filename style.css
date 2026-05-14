@@ -1,6 +1,28 @@
+@font-face {
+  font-family: DrunkFont;
+  src: url('assets/fonts/DRUNKFONTS-Regular.otf');
+}
+
+@font-face {
+  font-family: Typewriter;
+  src: url('assets/fonts/JMH Typewriter.otf');
+}
+
 html, body {
   margin: 0;
   padding: 0;
+  background:#000000;
+}
+
+h1 {
+  color:#1BD63D;
+  font-family: DrunkFont;
+  font-size:50pt;
+}
+
+p {
+  color:#1BD63D;
+  font-family: Typewriter;
 }
 
 canvas {
