@@ -563,10 +563,6 @@ function draw() {
 
   if (state == 0) {
     titleScreen();
-    if (!mus_keyWest.isPlaying()){
-      mus_keyWest.play();
-    }
-    
   } else if (state == 1) {
     instructionScreen();
 
@@ -735,6 +731,9 @@ function runGame(){
 }
 
 function titleScreen() {
+  if (!mus_keyWest.isPlaying()){
+      mus_keyWest.play();
+  }
   image(titlescreenBG, 0,0,800,800);
   noStroke();
   fill("#1BD63D");
@@ -752,6 +751,9 @@ function titleScreen() {
 }
 
 function instructionScreen() {
+  if (!mus_keyWest.isPlaying()){
+      mus_keyWest.play();
+  }
   image(instScreenBG, 0,0,800,800);
   
   noStroke();
